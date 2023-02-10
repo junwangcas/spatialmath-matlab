@@ -10,3 +10,5 @@
 *.synctex.gz
 doc/mkdocs
 doc/test
+
+*.m~
