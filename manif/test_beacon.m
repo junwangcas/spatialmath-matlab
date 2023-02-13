@@ -52,14 +52,14 @@ end
 
 %% visualize
 % ground truth 
-figure();
+subplot(1, 3, 1);
 plot(landmarks_simu(:,1), landmarks_simu(:,2),'*r');
 hold on; poses_simu{1}.plot;
 xlim([-1, 4]); ylim([-2, 3]);
 axis auto
 title('1lmks poses - gt');
 % initial values
-figure();
+subplot(1, 3, 2);
 plot(landmarks(:,1), landmarks(:,2),'*r');
 for i = 1:NUM_POSES
     hold on; poses_simu{i}.plot;
@@ -69,6 +69,7 @@ xlim([-1, 4]); ylim([-2, 3]);
 axis auto
 title('2lmks poses - init');
 
+sploth = subplot(1, 3, 3);
 % estimator
 for iteration = 1:MAX_ITER
     iteration
@@ -110,8 +111,6 @@ for iteration = 1:MAX_ITER
     end
     
     % plot
-    figure(3);
-    clf;
     plot(landmarks(:,1), landmarks(:,2),'*r');
     for i = 1:NUM_POSES
         hold on; poses_simu{i}.plot;
@@ -121,6 +120,7 @@ for iteration = 1:MAX_ITER
     axis auto
     title('3lmks poses - optimization');
     waitforbuttonpress;
+    cla(sploth);
 end
 
 
