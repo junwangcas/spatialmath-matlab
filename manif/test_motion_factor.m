@@ -32,7 +32,7 @@ for id_pose = 2:NUM_POSES
     X_i = poses{id_pose - 1} * SE2.exp(vec2se2(u_nom + u_noise));
     
     poses_simu{id_pose} = X_simu;
-    poses{id_pose} = X_i * SE2.exp(vec2se2(rand(3, 1)));
+    poses{id_pose} = X_i; % TODO temp no noise: * SE2.exp(vec2se2(rand(3, 1)));
     
     controls{id_pose} = u_nom + u_noise;
 end
@@ -72,37 +72,41 @@ for iteration = 1:MAX_ITER
     % evaluate motion factors
     for i = 1:NUM_POSES-1
         j = i + 1;
-        Xi = poses{i};
-        Xj = poses{j};
+        X1 = poses{i};
+        X2 = poses{j};
         u = controls{j};
         
-        delta_pose = (Xi.inv * Xj);
+        % fix first pose
+        delta_pose = (X1.inv * X2);
         d = se2vec(delta_pose.log);
         r(row : (row + DoF -1), 1) = W * (d - u);
-        J_d_xj = eye(3, 3); % 162
+        J_d_X2 = eye(3, 3); % 162
         
         
-        ix = Xi.inv;  % 161
-        J_d_ixi = eye(3, 3);
-        J_d_ixi(1:2, 1:2) = Xj.R';
-        J_d_ixi(1:2, 3) = Xj.R' * skew(1) * Xj.transl';
+        invX1 = X1.inv;  % 161
+        J_d_invX1 = eye(3, 3);
+        J_d_invX1(1:2, 1:2) = X2.R';
+        J_d_invX1(1:2, 3) = X2.R' * skew(1) * X2.transl';
         
-        J_ix_x = zeros(3, 3);  % equat 160 
-        J_ix_x(1:2, 1:2) = Xi.R;
-        J_ix_x(1:2, 3) = skew(1) * Xi.transl';
-        J_ix_x(3, 3) = -1;
+        J_invX1_X1 = zeros(3, 3);  % equat 160 
+        J_invX1_X1(1:2, 1:2) = -X1.R;
+        J_invX1_X1(1:2, 3) = skew(1) * X1.transl';
+        J_invX1_X1(3, 3) = -1;
         
-        J_d_xi = J_d_ixi * J_ix_x; 
+        J_d_X1 = J_d_invX1 * J_invX1_X1; 
         
         colsi = ((i - 1) * DoF + 1):((i - 1) * DoF + 3);
-        J(row : (row + DoF -1), colsi) = J_d_xi;
+        J(row : (row + DoF -1), colsi) = J_d_X1;
         colsj = ((j - 1) * DoF + 1):((j - 1) * DoF + 3);
-        J(row : (row + DoF -1), colsj) = J_d_xj;
+        J(row : (row + DoF -1), colsj) = J_d_X2;
     end
-    
-    dx = - inv(J' * J) * J' * r
+        
+    dx = - inv(J' * J) * J' * r;
+    r'
+    dx'
     % update
-    poses{1} = poses{1} * SE2.exp(vec2se2([dx()]));
+    poses{1} = poses{1} * SE2.exp(vec2se2([dx(1:3)]));
+    poses{2} = poses{2} * SE2.exp(vec2se2([dx(4:6)]));
     
     % plot
     %clf;
