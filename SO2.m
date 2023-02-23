@@ -416,7 +416,7 @@ classdef SO2 < RTBPose
                 h =  all(d(1:2) == [2 2]);
                 
                 if h && nargin > 1 && ~isa(r, 'sym')
-                    h = abs(det(r) - 1) < eps;
+                    h = abs(det(r) - 1) < 10*eps;
                 end
             else
                 h = false;
